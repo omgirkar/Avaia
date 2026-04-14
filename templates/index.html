@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avaia Dashboard</title>
+  <style>
+    /* Basic reset and styling */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    /* Header */
+    #header {
+      margin-top: 20px;
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    /* Animated wave container */
+    #wave-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 40px 0;
+    }
+    .wave {
+      width: 8px;
+      height: 50px;
+      background-color: #3498db;
+      margin: 0 3px;
+      border-radius: 4px;
+      animation: wave-animation 1s infinite ease-in-out;
+    }
+    .wave:nth-child(1) { animation-delay: 0s; }
+    .wave:nth-child(2) { animation-delay: 0.2s; }
+    .wave:nth-child(3) { animation-delay: 0.4s; }
+    .wave:nth-child(4) { animation-delay: 0.6s; }
+    .wave:nth-child(5) { animation-delay: 0.8s; }
+    @keyframes wave-animation {
+      0% { transform: scaleY(1); }
+      50% { transform: scaleY(2); }
+      100% { transform: scaleY(1); }
+    }
+    /* Status area */
+    #status-area {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #status-area p {
+      margin: 5px 0;
+      font-size: 1rem;
+    }
+    /* Manual control buttons */
+    #manual-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    #manual-controls button {
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #manual-controls button:hover {
+      background-color: #2980b9;
+    }
+    /* Voice assistant (Siri-like) button */
+    #mic-button {
+      background-color: #1abc9c;
+      border: none;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      color: #fff;
+      font-size: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s;
+      margin-bottom: 20px;
+    }
+    #mic-button:active {
+      transform: scale(0.95);
+    }
+    /* Footer */
+    #footer {
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      #header { font-size: 1.5rem; }
+      #manual-controls button { padding: 8px 12px; font-size: 0.8rem; }
+      #mic-button { width: 60px; height: 60px; font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="header">Avaia Dashboard</div>
+
+  <div id="status-area">
+    <p>Dustbin Status: <span id="dustbin-status">Loading...</span></p>
+    <p>Battery: <span id="battery-level">Loading...</span></p>
+    <p>WiFi: <span id="wifi-status">Loading...</span></p>
+  </div>
+
+  <div id="manual-controls">
+    <button onclick="sendCommand('move_forward')">Move Forward</button>
+    <button onclick="sendCommand('move_backward')">Move Backward</button>
+    <button onclick="sendCommand('turn_left')">Turn Left</button>
+    <button onclick="sendCommand('turn_right')">Turn Right</button>
+    <button onclick="sendCommand('stop')">Stop</button>
+    <button onclick="sendCommand('open_lid')">Open Lid</button>
+    <button onclick="sendCommand('close_lid')">Close Lid</button>
+    <button onclick="sendCommand('go_home')">Go Home</button>
+  </div>
+
+  <div id="footer">Made by Om Girkar</div>
+
+  <script>
+    // Function to send manual commands to the backend
+    function sendCommand(command) {
+      fetch('/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: command })
+      })
+      .then(response => response.json())
+      .then(data => console.log('Command response:', data))
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Periodically update the status displayed on the UI
+    function updateStatus() {
+      fetch('/get_status')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('dustbin-status').textContent = data.dustbin_status;
+        document.getElementById('battery-level').textContent = data.battery_level;
+        document.getElementById('wifi-status').textContent = data.wifi_status;
+      })
+      .catch(error => console.error('Error fetching status:', error));
+    }
+    setInterval(updateStatus, 2000);
+    updateStatus();
+
+    // Voice Command using MediaRecorder and sending audio to /voice_command
+    const micButton = document.getElementById('mic-button');
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Specify a supported MIME type
+        let options = { mimeType: 'audio/ogg; codecs=opus' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          // Fallback if the desired type is not supported by the browser
+          options = { mimeType: 'audio/webm' };
+        }
+        mediaRecorder = new MediaRecorder(stream, options);
+        audioChunks = [];
+
+        mediaRecorder.addEventListener("dataavailable", event => {
+          audioChunks.push(event.data);
+        });
+        mediaRecorder.addEventListener("stop", () => {
+          const audioBlob = new Blob(audioChunks, { type: options.mimeType });
+          const formData = new FormData();
+          // Use the appropriate file extension based on MIME type
+          const fileName = options.mimeType.includes("ogg") ? 'recording.ogg' : 'recording.webm';
+          formData.append('audio', audioBlob, fileName);
+          fetch('/voice_command', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => console.log('Voice command response:', data))
+          .catch(error => console.error('Error processing voice command:', error));
+        });
+      } catch (err) {
+        console.error('Error accessing microphone:', err);
+      }
+    }
+
+    // Toggle recording on mic button click
+    let recording = false;
+    micButton.addEventListener('click', () => {
+      if (!recording) {
+        startRecording();
+        micButton.style.backgroundColor = "#e74c3c"; // Indicate recording
+        recording = true;
+        // Stop recording after 3 seconds (adjust as needed)
+        setTimeout(() => {
+          mediaRecorder.stop();
+          micButton.style.backgroundColor = "#1abc9c";
+          recording = false;
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>
