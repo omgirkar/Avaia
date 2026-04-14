@@ -138,7 +138,7 @@ Feel free to fork this repository, submit pull requests, or open issues for any 
 
 ## License
 
-This project is open-source and available under the MIT License.
+This project is open-source and available under the [MIT License](LICENSE).
 
 ## Contact
 
