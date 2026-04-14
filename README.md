@@ -103,7 +103,7 @@ The following diagram illustrates the wiring connections between the ESP32 and t
     *   Alternatively, create a `.env` file in the same directory as `main.py` and add `OPENAI_API_KEY="your_api_key_here"`.
 5.  **Update ESP32 IP Address:**
     *   In `main.py` (line 116), update `DUSTBIN_IP_ADDRESS = "ESP32 IP"` with the actual IP address of your ESP32.
-    *   In `server.py` (line 14), update `DUSTBIN_IP_ADDRESS = "192.168.51.10"` with the actual IP address of your ESP32.
+    *   In `server.py` (line 14), update `DUSTBIN_IP_ADDRESS = "000.000.00.00"` with the actual IP address of your ESP32.
 6.  **Run the Backend Server:**
     ```bash
     python main.py
