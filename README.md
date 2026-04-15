@@ -85,7 +85,7 @@ The following diagram illustrates the wiring connections between the ESP32 and t
     ```bash
     pip install -r requirements.txt
     ```
-    *(Note: A `requirements.txt` file is not provided in the uploaded zip, but based on `main.py` and `server.py`, the following packages are likely needed: `flask`, `requests`, `openai`, `python-dotenv`, `langdetect`, `silero` (or a compatible VAD/STT/TTS library). You may need to create this file manually or install them one by one.)*
+    *(Note: The following packages are likely needed: `flask`, `requests`, `openai`, `python-dotenv`, `langdetect`, `silero` (or a compatible VAD/STT/TTS library). You may need to create this file manually or install them one by one.)*
 
     Example `requirements.txt` content:
     ```
